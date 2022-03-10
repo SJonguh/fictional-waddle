@@ -1,4 +1,14 @@
+# IntelliJ files
+.idea
+*.iml
+
+# Netbeans files
+nbproject
+nbactions.xml
+nb-configuration.xml
+
 # Compiled class file
+target
 *.class
 
 # Log file
