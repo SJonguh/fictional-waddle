@@ -1,6 +1,6 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import utilities.FileHandler;
+
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -18,20 +18,18 @@ public class Main {
 
         try (
             Socket socket = new Socket(host, port);
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            DataInputStream in = new DataInputStream(socket.getInputStream());
+            PrintWriter out = new PrintWriter(socket.getOutputStream());
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))
         ) {
-            out.writeUTF("<body>");
-
-            FileHandler fh = new FileHandler("input/video.mp4");
-            fh.read(out);
-
-            out.writeUTF("</body>");
+            File file = new File("/files/input/video3.mp4");
+            FileHandler fileHandler = new FileHandler(file);
+            fileHandler.readFile(socket.getOutputStream());
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + host);
             System.exit(1);
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to " + host);
+            e.printStackTrace();
         }
     }
 }
