@@ -15,7 +15,8 @@ No rights can be derived from the use of this software. In addition, the develop
 If you have any questions or comments, please contact the helpdesk.
 
 
- |\__/,|   (`\
- |_ _  |.--.) )
- ( T   )     /
-(((^_(((/(((_/
+             __..--''``---....___   _..._    __
+         _.-'    .--";  `        ``<._  ``.''_ `.
+     _.-' _..--.'_    :                     `( ) ) 
+    (_..-'    (< _     ;_..__               ; `' 
+               `-._,_)'      ``--...____..-' 
