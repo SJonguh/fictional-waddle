@@ -24,18 +24,22 @@ public class FileWriteHandler extends FileHandler {
     public boolean write(Iterator<byte[]> iterator, long fileSize, String checksum, String digest) throws IOException, NoSuchAlgorithmException {
         createParentDirectoryIfNotExist();
 
+        File temp = File.createTempFile("~" + file.getName(), null, file.getParentFile());
+
         MessageDigest messageDigest = MessageDigest.getInstance(digest);
-        try (FileOutputStream out = new FileOutputStream(file)) {
+        try (FileOutputStream out = new FileOutputStream(temp)) {
             while(iterator.hasNext()) {
                 byte[] buffer = iterator.next();
                 out.write(buffer);
                 messageDigest.update(buffer);
             }
-
-            if(checksum(messageDigest).equals(checksum)) {
-                return true;
-            }
         }
+
+        if(checksum(messageDigest).equals(checksum)) {
+            file.delete();
+            return temp.renameTo(file);
+        }
+
         return false;
     }
 
