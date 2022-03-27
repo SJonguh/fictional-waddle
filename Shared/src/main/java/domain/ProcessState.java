@@ -1,8 +1,7 @@
 package domain;
 
 public enum ProcessState {
-    WAITING,
+    PROCESSING_METHOD,
     PROCESSING_HEADERS,
     PROCESSING_BODY,
-    DONE
 }

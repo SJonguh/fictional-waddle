@@ -4,8 +4,6 @@ import domain.Headers;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Iterator;
-
 @Getter
 @Setter
 public class Request {
@@ -13,8 +11,8 @@ public class Request {
     private String path;
     private String version;
     private Headers headers;
-    private Iterator body;
 
     public Request() {
+        this.headers = new Headers();
     }
 }

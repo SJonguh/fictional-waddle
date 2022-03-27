@@ -10,8 +10,10 @@ public enum ResponseStatus {
     B01(ResponseType.B, "Checksum Error"),
     B02(ResponseType.B, "Filename Error"),
     B03(ResponseType.B, "Authorisation Refused"),
-    B11(ResponseType.B, "Invalid Date error"),
+    B04(ResponseType.B, "Missing Header Error"),
+    B11(ResponseType.B, "Invalid Date Error"),
     B12(ResponseType.B, "Invalid Url"),
+    B13(ResponseType.B, "Malformed Header Error"),
     C00(ResponseType.C, "Internal Server Error"),
     C01(ResponseType.C, "File has been modified"),
     C02(ResponseType.C, "No Storage Available"),
@@ -27,6 +29,6 @@ public enum ResponseStatus {
 
     @Override
     public String toString() {
-        return this.name() + " " + responseType + " " + message;
+        return this.name() + " " + responseType + ": " + message;
     }
 }

@@ -32,6 +32,7 @@ public class Protocol {
         long lastModified = new SimpleDateFormat("dd-MM-yyyy")
             .parse(headers.get("last-modified"))
             .getTime();
+        String checksum = headers.get("checksum");
         String contentLength = headers.get("content-length");
         boolean keepAlive = Boolean.parseBoolean(
             headers.getOrDefault("keep-alive", "false"));
@@ -52,6 +53,7 @@ public class Protocol {
                 // TODO: Implement file write handler
                 File file = new File(rootDirectory, request.getPath());
                 FileWriteHandler fileWriteHandler = new FileWriteHandler(file);
+                fileWriteHandler.write(inputStream, Long.parseLong(contentLength), checksum, "MD5");
                 return new Response<>(keepAlive ? ResponseStatus.A00 : ResponseStatus.A01);
             }
             case PULL -> {
