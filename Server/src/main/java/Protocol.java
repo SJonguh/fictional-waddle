@@ -25,7 +25,7 @@ public class Protocol {
     }
 
     public Response process(Request request, InputStream inputStream) throws NoSuchAlgorithmException, IOException, ParseException {
-        if(new Validator().validateRequest(request)){
+        if(!new Validator().validateRequest(request)){
             return new Response().withResponseStatus(ResponseStatus.B00);
         }
 

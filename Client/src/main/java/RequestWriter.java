@@ -15,8 +15,7 @@ public class RequestWriter extends PrintWriter {
     }
 
     public void process(Request request) throws IOException {
-        Validator validator = new Validator();
-        if(validator.validateRequest(request)){
+        if(!new Validator().validateRequest(request)){
             throw new RuntimeException("Request validation failed");
         }
 

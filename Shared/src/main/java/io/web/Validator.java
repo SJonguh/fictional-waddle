@@ -18,7 +18,7 @@ public class Validator {
     public boolean validateResponse(Response response){
         return !(response == null ||
                 response.getResponseStatus() == null ||
-                response.getFile() == null ||
+                response.getBody() == null ||
                 response.getHeaders() == null ||
                 response.getHeaders().isEmpty());
     }

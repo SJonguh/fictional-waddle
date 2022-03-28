@@ -57,7 +57,6 @@ public class Main {
                                     .set("last-modified", lastModified)
                                     .set("keep-alive", String.valueOf(true))));
                 }
-
             }
 
 
