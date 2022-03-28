@@ -9,6 +9,9 @@ public class LineValidator {
     }
 
     public boolean isInvalidLine(String[] array, int length) {
+        if (length != array.length) {
+            return true;
+        }
         for (String value : array) {
             if (value.isEmpty() || value.isBlank())
                 return true;
