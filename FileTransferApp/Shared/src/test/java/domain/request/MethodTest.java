@@ -17,7 +17,6 @@ public class MethodTest {
     void testWithRequestType() {
         // Prepare
         RequestType requestType = RequestType.FETCH;
-
         // Act
         method.withRequestType(requestType);
         // Assert
