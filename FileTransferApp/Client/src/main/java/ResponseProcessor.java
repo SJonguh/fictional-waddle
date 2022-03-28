@@ -27,7 +27,7 @@ public class ResponseProcessor implements Closeable {
         this.rootDirectory = rootDirectory;
     }
 
-    public Response process(RequestType requestType) throws IOException, NoSuchAlgorithmException, ParseException {
+    public Response process(RequestType requestType) throws IOException {
         long startTime = System.currentTimeMillis()/1000;
         while(inputStream.available() == 0){
             if((System.currentTimeMillis()/1000) - startTime > 120) {

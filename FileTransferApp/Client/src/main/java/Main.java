@@ -39,7 +39,7 @@ public class Main {
             System.out.println("Which is the last sync date");
             String lastModified = stdIn.readLine();
 
-            Response response = null;
+            Response response;
 
             out.process(new Request()
                     .withMethod(new Method()
@@ -51,7 +51,7 @@ public class Main {
                             .set("keep-alive", String.valueOf(true))));
             response = responseProcessor.process(FETCH);
             if(response != null && response.getResponseStatus() == ResponseStatus.A00){
-                String filePath = null;
+                String filePath;
                 while(response.getBody().hasNext()) {
                     filePath = (String) response.getBody().next();
                     out.process(new Request()
@@ -62,24 +62,16 @@ public class Main {
                             .withHeaders(new Headers()
                                     .set("last-modified", lastModified)
                                     .set("keep-alive", String.valueOf(true))));
-                    response = responseProcessor.process(PULL);
+                    Response pullResponse = responseProcessor.process(PULL);
 
-                    String checksum = response.getHeaders().get("checksum");
-                    String contentLength = response.getHeaders().get("content-length");
+                    String checksum = pullResponse.getHeaders().get("checksum");
+                    String contentLength = pullResponse.getHeaders().get("content-length");
                     File file = new File(rootDirectory, filePath);
                     FileWriteHandler fileWriteHandler = new FileWriteHandler(file);
                     fileWriteHandler.write(inputStream, Long.parseLong(contentLength), checksum, "MD5");
                 }
             }
-
-
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
     }
