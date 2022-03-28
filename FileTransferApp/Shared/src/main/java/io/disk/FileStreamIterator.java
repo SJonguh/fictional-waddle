@@ -19,6 +19,15 @@ public class FileStreamIterator implements Iterator<byte[]>, Closeable {
     private int count;
     private byte[] buffer;
 
+    public FileStreamIterator(){
+        this.fileInputStream = null;
+        this.bufferSize = 0;
+        this.fileChannel = null;
+        this.fileSize = 0;
+        this.mappedBuffers = 0;
+        this.mappedByteBuffers = null;
+    }
+
     public FileStreamIterator(File file, int bufferSize) throws IOException {
         this.fileInputStream = new FileInputStream(file);
         this.bufferSize = bufferSize;
