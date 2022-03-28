@@ -30,13 +30,17 @@ public class RequestProcessor implements Closeable {
             switch (processState) {
                 case PROCESSING_METHOD -> {
                     String[] input = inputLine.split(" ");
-                    if (input.length != 3 || hasEmptyValue(input))
+                    if (input.length < 3 || hasEmptyValue(input))
                         return new Response().withResponseStatus(ResponseStatus.B00);
-
+                    StringBuilder path = new StringBuilder();
+                    for(int i = 1; i < input.length - 1; i++) {
+                        path.append(input[i]);
+                        path.append(" ");
+                    }
                     request.setMethod(new Method()
                             .withRequestType(RequestType.valueOf(input[0]))
-                            .withPath(input[1])
-                            .withVersion(input[2]));
+                            .withPath(path.toString().trim())
+                            .withVersion(input[input.length - 1]));
                     processState = ProcessState.PROCESSING_HEADERS;
                 }
                 case PROCESSING_HEADERS -> {

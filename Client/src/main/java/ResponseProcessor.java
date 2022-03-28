@@ -38,14 +38,18 @@ public class ResponseProcessor implements Closeable {
         ProcessState processState = ProcessState.PROCESSING_METHOD;
         Response response = new Response();
 
-
+        File[] files = null;
+        int i = 0;
         String inputLine;
-        while (processState != PROCESSING_BODY && (inputLine = bufferedReader.readLine()) != null) {
+        while ((processState != PROCESSING_BODY ||
+                requestType == RequestType.FETCH) &&
+                (inputLine = bufferedReader.readLine()) != null) {
             switch (processState) {
                 case PROCESSING_METHOD -> {
                     String[] input = inputLine.split(" ", 3);
                     lineValidator.throwExceptionIfInvalidLine(input, 3, "Invalid Method Line");
                     response.setResponseStatus(ResponseStatus.valueOf(input[0]));
+                    response.setHeaders(new Headers());
                     processState = PROCESSING_HEADERS;
                 }
                 case PROCESSING_HEADERS -> {
@@ -55,24 +59,24 @@ public class ResponseProcessor implements Closeable {
                     }
                     String[] header = inputLine.split(":");
                     lineValidator.throwExceptionIfInvalidLine(header, 2, "Invalid Header Line");
-                    response.setHeaders(new Headers());
-                    response.getHeaders().put(header[0], header[1]);
+                    response.getHeaders().set(header[0], header[1]);
                 }
-            }
-        }
-        if(requestType == RequestType.FETCH) {
-            File[] files = new File[Integer.parseInt(response.getHeaders().get("content-length"))];
-            int i = 0;
-            while ((inputLine = bufferedReader.readLine()) != null) {
-                if (processState == PROCESSING_BODY && !inputLine.equals("")) {
+                case PROCESSING_BODY -> {
+                    if(files == null) {
+                        files = new File[Integer.parseInt(response.getHeaders().get("content-length"))];
+                        response.withBody(new FileIterator(
+                                files,
+                                rootDirectory,
+                                0
+                        ));
+                    }
+                    if(files.length == i) {
+                        return response;
+                    }
                     files[i++] = new File(rootDirectory, inputLine);
+
                 }
             }
-            response.withBody(new FileIterator(
-                    files,
-                    rootDirectory,
-                    0
-            ));
         }
         return response;
     }

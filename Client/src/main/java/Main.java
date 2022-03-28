@@ -2,6 +2,8 @@ import domain.Headers;
 import domain.request.Method;
 import domain.request.Request;
 import domain.response.Response;
+import domain.response.ResponseStatus;
+import io.disk.FileWriteHandler;
 
 import java.io.*;
 import java.net.Socket;
@@ -37,6 +39,8 @@ public class Main {
             System.out.println("Which is the last sync date");
             String lastModified = stdIn.readLine();
 
+            Response response = null;
+
             out.process(new Request()
                     .withMethod(new Method()
                             .withRequestType(FETCH)
@@ -45,17 +49,26 @@ public class Main {
                     .withHeaders(new Headers()
                             .set("last-modified", lastModified)
                             .set("keep-alive", String.valueOf(true))));
-            Response response = responseProcessor.process(FETCH);
-            if(response != null){
+            response = responseProcessor.process(FETCH);
+            if(response != null && response.getResponseStatus() == ResponseStatus.A00){
+                String filePath = null;
                 while(response.getBody().hasNext()) {
+                    filePath = (String) response.getBody().next();
                     out.process(new Request()
                             .withMethod(new Method()
                                     .withRequestType(PULL)
-                                    .withPath((String) response.getBody().next())
+                                    .withPath(filePath)
                                     .withVersion("ABSP/1"))
                             .withHeaders(new Headers()
                                     .set("last-modified", lastModified)
                                     .set("keep-alive", String.valueOf(true))));
+                    response = responseProcessor.process(PULL);
+
+                    String checksum = response.getHeaders().get("checksum");
+                    String contentLength = response.getHeaders().get("content-length");
+                    File file = new File(rootDirectory, filePath);
+                    FileWriteHandler fileWriteHandler = new FileWriteHandler(file);
+                    fileWriteHandler.write(inputStream, Long.parseLong(contentLength), checksum, "MD5");
                 }
             }
 

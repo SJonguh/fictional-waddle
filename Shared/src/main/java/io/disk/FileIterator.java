@@ -21,7 +21,7 @@ public class FileIterator implements Iterator<String> {
 
         File file = files[i];
         i++;
-        return file.lastModified() > lastModifiedDate
+        return !file.exists() || file.lastModified() > lastModifiedDate
             ? file.getPath().substring(absolutePathLength)
             : next();
     }
