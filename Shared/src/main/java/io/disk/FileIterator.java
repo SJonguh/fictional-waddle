@@ -1,4 +1,4 @@
-package io;
+package io.disk;
 
 import java.io.File;
 import java.util.Iterator;
@@ -28,6 +28,6 @@ public class FileIterator implements Iterator<String> {
 
     @Override
     public boolean hasNext() {
-        return i < files.length;
+        return files != null && i < files.length;
     }
 }

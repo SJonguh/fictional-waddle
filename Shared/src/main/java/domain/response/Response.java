@@ -1,33 +1,46 @@
 package domain.response;
 
 import domain.Headers;
+import domain.request.Request;
+import domain.request.RequestType;
+import io.disk.FileIterator;
+import io.disk.FileStreamIterator;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.File;
 import java.util.Iterator;
 
 @Getter
 @Setter
-public class Response<T> {
+public class Response {
     private ResponseStatus responseStatus;
     private Headers headers;
-    private Iterator<T> iterator;
+    private Iterator body;
+    private RequestType requestType;
 
-    public Response() {
+    public Response withResponseStatus(ResponseStatus responseStatus) {
+        this.responseStatus = responseStatus;
+        return this;
     }
 
-    public Response(ResponseStatus responseStatus) {
-        this.responseStatus = responseStatus;
-    }
-
-    public Response(ResponseStatus responseStatus, Iterator<T> iterator) {
-        this.responseStatus = responseStatus;
-        this.iterator = iterator;
-    }
-
-    public Response(ResponseStatus responseStatus, Headers headers, Iterator<T> iterator) {
-        this.responseStatus = responseStatus;
+    public Response withHeaders(Headers headers) {
         this.headers = headers;
-        this.iterator = iterator;
+        return this;
+    }
+
+    public Response withBody(FileIterator body) {
+        this.body = body;
+        return this;
+    }
+
+    public Response withBody(FileStreamIterator body) {
+        this.body = body;
+        return this;
+    }
+
+    public Response withRequestType(RequestType requestType) {
+        this.requestType = requestType;
+        return this;
     }
 }

@@ -1,11 +1,12 @@
 import domain.Headers;
-import domain.request.Request;
 import domain.request.RequestType;
+import io.web.Validator;
+import domain.request.Request;
 import domain.response.Response;
 import domain.response.ResponseStatus;
-import io.FileIterator;
-import io.FileReadHandler;
-import io.FileWriteHandler;
+import io.disk.FileIterator;
+import io.disk.FileReadHandler;
+import io.disk.FileWriteHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,61 +14,73 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Iterator;
 
 public class Protocol {
     private final String rootDirectory;
+    private final SimpleDateFormat format =  new SimpleDateFormat("dd-MM-yyyy hh:mm");
 
     public Protocol(String rootDirectory) {
         this.rootDirectory = rootDirectory;
     }
 
     public Response process(Request request, InputStream inputStream) throws NoSuchAlgorithmException, IOException, ParseException {
-        if (request == null || request.getPath() == null || request.getRequestType() == null) {
-            return new Response<>(ResponseStatus.B00);
+        if(new Validator().validateRequest(request)){
+            return new Response().withResponseStatus(ResponseStatus.B00);
         }
-        var headers = request.getHeaders();
+
+        Headers headers = request.getHeaders();
 
         // TODO: Check protocol version for accepted versions
 
-        long lastModified = new SimpleDateFormat("dd-MM-yyyy")
-            .parse(headers.get("last-modified"))
-            .getTime();
-        String checksum = headers.get("checksum");
-        String contentLength = headers.get("content-length");
         boolean keepAlive = Boolean.parseBoolean(
             headers.getOrDefault("keep-alive", "false"));
 
-        if (/*lastModified == null ||*/ (request.getRequestType() == RequestType.PUSH && contentLength == null)) {
-            return new Response<>(ResponseStatus.B00);
-        }
-
-        switch (request.getRequestType()) {
+        switch (request.getMethod().getRequestType()) {
             case FETCH -> {
-                File file = new File(rootDirectory, request.getPath());
-                File[] files = file.listFiles();
-                return new Response<>(
-                    keepAlive ? ResponseStatus.A00 : ResponseStatus.A01,
-                    new FileIterator(files, rootDirectory, lastModified));
+                File[] files = new File(rootDirectory, request.getMethod().getPath()).listFiles();
+                return new Response()
+                        .withResponseStatus(keepAlive
+                                ? ResponseStatus.A00
+                                : ResponseStatus.A01)
+                        .withHeaders(new Headers()
+                                .set("content-length", String.valueOf(files.length)))
+                        .withBody(new FileIterator(
+                                files,
+                                rootDirectory,
+                                format.parse(headers.get("last-modified")).getTime()))
+                        .withRequestType(RequestType.FETCH);
             }
             case PUSH -> {
+                String checksum = headers.get("checksum");
+                String contentLength = headers.get("content-length");
                 // TODO: Implement file write handler
-                File file = new File(rootDirectory, request.getPath());
+                File file = new File(rootDirectory, request.getMethod().getPath());
                 FileWriteHandler fileWriteHandler = new FileWriteHandler(file);
                 fileWriteHandler.write(inputStream, Long.parseLong(contentLength), checksum, "MD5");
-                return new Response<>(keepAlive ? ResponseStatus.A00 : ResponseStatus.A01);
+                return new Response()
+                        .withResponseStatus(keepAlive
+                                ? ResponseStatus.A00
+                                : ResponseStatus.A01)
+                        .withRequestType(RequestType.PUSH);
+
             }
             case PULL -> {
-                File file = new File(rootDirectory, request.getPath());
+                File file = new File(rootDirectory, request.getMethod().getPath());
                 FileReadHandler fileReadHandler = new FileReadHandler(file);
-                return new Response<>(
-                    keepAlive ? ResponseStatus.A00 : ResponseStatus.A01,
-                    new Headers()
-                        .set("content-length", String.valueOf(file.length()))
-                        .set("checksum", fileReadHandler.getChecksum("MD5")),
-                    fileReadHandler.getIterator());
+                return new Response()
+                        .withResponseStatus(keepAlive
+                                ? ResponseStatus.A00
+                                : ResponseStatus.A01)
+                        .withHeaders(new Headers()
+                                .set("content-length", String.valueOf(file.length()))
+                                .set("checksum", fileReadHandler.getChecksum("MD5")))
+                        .withBody(fileReadHandler.getIterator())
+                        .withRequestType(RequestType.PULL);
+
             }
             default -> {
-                return new Response<>(ResponseStatus.B00, null, null);
+                return new Response().withResponseStatus(ResponseStatus.B00);
             }
         }
     }

@@ -7,12 +7,20 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Request {
-    private RequestType requestType;
-    private String path;
-    private String version;
+    private Method method;
     private Headers headers;
 
     public Request() {
         this.headers = new Headers();
+    }
+
+    public Request withMethod(Method method) {
+        this.method = method;
+        return this;
+    }
+
+    public Request withHeaders(Headers headers) {
+        this.headers = headers;
+        return this;
     }
 }

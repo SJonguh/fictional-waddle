@@ -1,8 +1,16 @@
-import io.FileReadHandler;
+import domain.Headers;
+import domain.request.Method;
+import domain.request.Request;
+import domain.response.Response;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+
+import static domain.request.RequestType.FETCH;
+import static domain.request.RequestType.PULL;
 
 public class Main {
     public static void main(String[] args) {
@@ -15,39 +23,51 @@ public class Main {
         String rootDirectory = args[2];
 
         try (
-            Socket socket = new Socket(hostName, portNumber);
-            OutputStream outputStream = socket.getOutputStream();
-            PrintWriter out = new PrintWriter(outputStream, true);
-            var inputStream = socket.getInputStream();
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(inputStream))
+                Socket socket = new Socket(hostName, portNumber);
+                OutputStream outputStream = socket.getOutputStream();
+                InputStream inputStream = socket.getInputStream();
+
+                RequestWriter out = new RequestWriter(outputStream);
+                ResponseProcessor responseProcessor = new ResponseProcessor(socket.getInputStream(), rootDirectory);
+                BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+                BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
         ) {
-            File file = new File(rootDirectory, "video2.mp4");
-            FileReadHandler fileReadHandler = new FileReadHandler(file);
-            String checksum = fileReadHandler.getChecksum("MD5");
-            out.println(String.format("%s /%s %s", "PUSH", file.getName(), "ABSP/1.0"));
-            out.println(String.format("last-modified:%s", "2022-03-21"));
-            out.println(String.format("content-length:%d", file.length()));
-            out.println(String.format("checksum:%s", checksum));
-            out.println();
-            var iterator = fileReadHandler.getIterator();
-            while (iterator.hasNext()) {
-                outputStream.write(iterator.next());
-            }
+            System.out.println("Which path should be synced");
+            String path = stdIn.readLine();
+            System.out.println("Which is the last sync date");
+            String lastModified = stdIn.readLine();
 
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                if (inputLine.isEmpty()) {
-                    break;
+            out.process(new Request()
+                    .withMethod(new Method()
+                            .withRequestType(FETCH)
+                            .withPath(path)
+                            .withVersion("ABSP/1"))
+                    .withHeaders(new Headers()
+                            .set("last-modified", lastModified)
+                            .set("keep-alive", String.valueOf(true))));
+            Response response = responseProcessor.process(FETCH);
+            if(response != null){
+                while(response.getBody().hasNext()) {
+                    out.process(new Request()
+                            .withMethod(new Method()
+                                    .withRequestType(PULL)
+                                    .withPath((String) response.getBody().next())
+                                    .withVersion("ABSP/1"))
+                            .withHeaders(new Headers()
+                                    .set("last-modified", lastModified)
+                                    .set("keep-alive", String.valueOf(true))));
                 }
-                System.out.println(String.format("Server: %s", inputLine));
+
             }
 
-            //System.out.println("BYTESTREAM!!");
-            //FileWriteHandler fileWriteHandler = new FileWriteHandler(file);
-            //fileWriteHandler.write(inputStream, 5_110_374_380L, "320e94f9878408d757092673939b054a", "MD5");
 
-        } catch (IOException | NoSuchAlgorithmException e) {
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
             e.printStackTrace();
         }
     }

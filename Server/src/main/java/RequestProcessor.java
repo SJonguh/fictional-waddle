@@ -1,4 +1,5 @@
 import domain.ProcessState;
+import domain.request.Method;
 import domain.request.Request;
 import domain.request.RequestType;
 import domain.response.Response;
@@ -25,32 +26,32 @@ public class RequestProcessor implements Closeable {
         Request request = new Request();
 
         String inputLine;
-        while ((inputLine = bufferedReader.readLine()) != null) {
+        while (processState != ProcessState.PROCESSING_BODY && (inputLine = bufferedReader.readLine()) != null) {
             switch (processState) {
                 case PROCESSING_METHOD -> {
                     String[] input = inputLine.split(" ");
                     if (input.length != 3 || hasEmptyValue(input))
-                        return new Response(ResponseStatus.B00);
-                    request.setRequestType(RequestType.valueOf(input[0]));
-                    request.setPath(input[1]);
-                    request.setVersion(input[2]);
+                        return new Response().withResponseStatus(ResponseStatus.B00);
+
+                    request.setMethod(new Method()
+                            .withRequestType(RequestType.valueOf(input[0]))
+                            .withPath(input[1])
+                            .withVersion(input[2]));
                     processState = ProcessState.PROCESSING_HEADERS;
                 }
                 case PROCESSING_HEADERS -> {
                     if (inputLine.isEmpty()) {
                         if (request.getHeaders().isEmpty())
-                            return new Response(ResponseStatus.B04);
+                            return new Response().withResponseStatus(ResponseStatus.B00);
                         processState = ProcessState.PROCESSING_BODY;
                         break;
                     }
-                    String[] header = inputLine.split(":");
-                    if (header.length != 2 || hasEmptyValue(header))
-                        return new Response(ResponseStatus.B13);
+                    String[] header = inputLine.split(":", 2);
+                    if (hasEmptyValue(header))
+                        return new Response().withResponseStatus(ResponseStatus.B13);
                     request.getHeaders().put(header[0], header[1]);
                 }
             }
-            if (processState == ProcessState.PROCESSING_BODY)
-                break;
         }
         return protocol.process(request, inputStream);
     }

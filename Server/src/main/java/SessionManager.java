@@ -14,8 +14,8 @@ public class SessionManager extends Thread {
     @Override
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
-            System.out.println(String.format("File Transfer Server started at %s.",
-                serverSocket.getLocalSocketAddress()));
+            System.out.printf("File Transfer Server started at %s.%n",
+                serverSocket.getLocalSocketAddress());
             while (!interrupted()) {
                 Session session = new Session(serverSocket.accept(), rootDirectory);
             }

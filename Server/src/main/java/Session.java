@@ -1,6 +1,6 @@
 import domain.response.Response;
 import domain.response.ResponseStatus;
-import domain.response.ResponseWriter;
+import domain.response.ResponseType;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -26,9 +26,13 @@ public class Session extends Thread {
                 socket.getInputStream(), rootDirectory)
         ) {
             while (!interrupted()) {
-                Response response = requestProcessor.process();
+                if(socket.getInputStream().available() == 0){
+                    continue;
+                }
+
+                var response = requestProcessor.process();
                 out.process(response);
-                if (response.getResponseStatus() == ResponseStatus.A01)
+                if (response.getResponseStatus() == ResponseStatus.A01 || response.getResponseStatus().getResponseType() == ResponseType.B)
                     break;
             }
         } catch (IOException | NoSuchAlgorithmException | ParseException e) {
