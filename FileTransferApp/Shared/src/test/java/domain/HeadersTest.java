@@ -1,6 +1,5 @@
-package domain.response;
+package domain;
 
-import domain.Headers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

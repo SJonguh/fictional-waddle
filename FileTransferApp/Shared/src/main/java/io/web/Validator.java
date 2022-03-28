@@ -4,7 +4,7 @@ import domain.request.Request;
 import domain.response.Response;
 
 public class Validator {
-    public boolean validateRequest(Request request){
+    public boolean validateRequest(Request request) {
         return !(request == null ||
                 request.getMethod() == null ||
                 request.getMethod().getRequestType() == null ||
@@ -15,7 +15,7 @@ public class Validator {
                 !validateRequestTypeSpecificHeaders(request));
     }
 
-    public boolean validateResponse(Response response){
+    public boolean validateResponse(Response response) {
         return !(response == null ||
                 response.getResponseStatus() == null ||
                 response.getBody() == null ||
@@ -24,12 +24,10 @@ public class Validator {
     }
 
     private boolean validateRequestTypeSpecificHeaders(Request request) {
-        return switch(request.getMethod().getRequestType()) {
-            case PUSH ->
-                    request.getHeaders().get("content-length") != null &&
-                            request.getHeaders().get("") != null;
-            case PULL, FETCH ->
-                    request.getHeaders().get("last-modified") != null;
+        return switch (request.getMethod().getRequestType()) {
+            case PUSH -> request.getHeaders().get("content-length") != null &&
+                    request.getHeaders().get("checksum") != null;
+            case PULL, FETCH -> request.getHeaders().get("last-modified") != null;
         };
     }
 
